@@ -21,6 +21,39 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 // Class to manage message delivery and receipt, using the driver declared above
 RHReliableDatagram manager(rf95, TRANSMITTER_ADDR);
 
+unsigned long txStart;
+unsigned long txEnd;
+unsigned long txTime;
+unsigned long rxStart;
+unsigned long rxEnd;
+unsigned long rxTime;
+
+uint8_t fullPacket[251];
+int startTime;
+int endTime;
+int numPacketsSent = 0;
+int rssi_data[500];
+int bitrate_data[500];
+int txtime_data[500];
+int rxtime_data[500];
+int snr_data[500];
+
+String _inputBuffer = "";
+
+uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+
+state current_state {idle};
+bool contestFlag = false;
+
+uint8_t rec[] = "Recieved";
+
+enum state {
+  idle,
+  contest,
+  txtest,
+  repdata
+};
+
 bool setup_radio(){
 
   // Initialize the radio
@@ -83,15 +116,6 @@ bool setup_radio(){
 
 }
 
-unsigned long txStart;
-unsigned long txEnd;
-unsigned long txTime;
-unsigned long rxStart;
-unsigned long rxEnd;
-unsigned long rxTime;
-
-uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-
 
 // Function for transmitting a reliable, acknowledged packet with timing info
 void transmit(uint8_t packet[], uint8_t length){
@@ -139,8 +163,6 @@ void transmit(uint8_t packet[], uint8_t length){
   }
 }
 
-uint8_t rec[] = "Recieved";
-
 void recieve(){
   if (manager.available())
   {
@@ -161,7 +183,6 @@ void recieve(){
   }
 }
 
-String _inputBuffer = "";
 
 void getSerialInput() {
   int i = 0;  // prevent infinite loops - unlikely
@@ -183,17 +204,6 @@ void getSerialInput() {
     }
   }
 }
-
-enum state {
-  idle,
-  contest,
-  txtest,
-  repdata
-};
-
-state current_state {idle};
-bool contestFlag = false;
-
 
 /*
 Commands:
@@ -230,15 +240,6 @@ void command_parser(String& input){
   delay(100);
 }
 
-uint8_t fullPacket[251];
-int startTime;
-int endTime;
-int numPacketsSent = 0;
-int rssi_data[500];
-int bitrate_data[500];
-int txtime_data[500];
-int rxtime_data[500];
-int snr_data[500];
 
 void setup() {
 
@@ -314,15 +315,6 @@ void idle_state(){
   delay(1000);
 
 }
-
-
-
-
-
-
-
-
-
 
 void loop() {
   getSerialInput();
